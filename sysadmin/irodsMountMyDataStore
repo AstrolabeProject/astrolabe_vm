@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# Shell script to mount a Cyverse user's DataStore to a local mount point using FUSE.
+#   Written by: Tom Hicks. 3/6/2018.
+#   Last Modified: Initial creation.
+#
+progname=`basename $0`
+
+if [ "$1" = "-h" ]
+then
+   echo "Usage: $progname [mount-point]"
+   exit 1
+fi
+
+DS=${1:-$HOME/data_store}
+
+if [ ! -d "$DS" ]
+then
+   echo "Mount point Directory '$DS' not found. It must exist before mounting."
+   exit 2
+fi
+
+# do the actual mount using FUSE:
+irodsFs -oallow_other -oconnreuse -ometadatacachetimeout 3600 -opreloadblocks 5 $DS

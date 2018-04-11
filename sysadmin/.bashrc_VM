@@ -1,0 +1,13 @@
+# Look for and source special Astrolabe setup file:
+#
+if [ -f /etc/profile.d/astrolabe-rc.sh ]; then
+  . /etc/profile.d/astrolabe-rc.sh
+fi
+
+# Source any local aliases:
+#
+if [ -f ~/.bash_aliases ]; then
+  . ~/.bash_aliases
+fi
+
+export PATH=$HOME/bin:$PATH

@@ -1,0 +1,5 @@
+#!/bin/bash
+while (test 1); do
+  echo -n "."
+  sleep 300
+done

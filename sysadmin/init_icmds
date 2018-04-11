@@ -1,0 +1,20 @@
+#!/bin/bash
+
+ATMO_USER=${1:-$USER}
+
+init_icmds ()
+{
+  mkdir -p ~/.irods
+  cat > ~/.irods/irods_environment.json  <<ICMDS_JSON
+{
+    "irods_host": "data.cyverse.org",
+    "irods_port": 1247,
+    "irods_user_name": "$ATMO_USER",
+    "irods_zone_name": "iplant",
+    "irods_default_resource" : "CyVerseRes"
+}
+ICMDS_JSON
+}
+
+# Start the execution of this script:
+init_icmds

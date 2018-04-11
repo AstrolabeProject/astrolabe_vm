@@ -1,0 +1,18 @@
+#!/bin/bash
+#
+# Shell script to unmount a Cyverse user's DataStore from a local mount point.
+#   Written by: Tom Hicks. 3/6/2018.
+#   Last Modified: Initial creation.
+#
+progname=`basename $0`
+
+if [ "$1" = "-h" ]
+then
+   echo "Usage: $progname [mount-point]"
+   exit 1
+fi
+
+DS=${1:-$HOME/data_store}
+
+# do the actual unmount:
+/bin/fusermount -u $DS

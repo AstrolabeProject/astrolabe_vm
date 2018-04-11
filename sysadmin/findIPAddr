@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# attempt external ip resolution through dyndns
+if [ -z "$PUBLIC_IP" ]; then
+  PUBLIC_IP=$(curl -s 'http://checkip.dyndns.org' | sed 's/.*Current IP Address: \([0-9\.]*\).*/\1/g')
+fi
+
+# attempt external ip resolution through ipify
+if [ -z "$PUBLIC_IP" ]; then
+  PUBLIC_IP=$(curl -s https://api.ipify.org)
+fi
+
+# export PUBLIC_IP
+echo $PUBLIC_IP

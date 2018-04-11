@@ -1,0 +1,3 @@
+/usr/local/anaconda_5.1/envs/astroconda
+/usr/local/anaconda_5.1/envs/iraf
+/usr/local/anaconda_5.1

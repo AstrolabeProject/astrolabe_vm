@@ -1,0 +1,3 @@
+channels:
+  - http://ssb.stsci.edu/astroconda
+  - defaults

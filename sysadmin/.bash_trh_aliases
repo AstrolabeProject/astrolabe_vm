@@ -1,0 +1,153 @@
+# Bash Aliases and Functions.
+#   Written by: Tom Hicks. 02/26/2018
+#   Last Modified: Add alias to show functions.
+#
+
+# turn off the damn default aliases:
+unalias l ls ll >/dev/null 2>/dev/null
+
+addcol () { paste -sd+ $* | bc ; }
+admin () { sudo chown root:root $* ; }
+alias blank='xlock -nolock -mode blank'
+bvt () { bzcat $* | tar tvf - 2>&1 | less ; }
+bxt () { bzcat $* | tar xvf - ; }
+alias cdpath='echo $CDPATH'
+alias cldump='echo $CLASSPATH | tr ":" "\n"'
+clean () { rm -f *.class *.~*~ .#* ; }
+alias clpath='echo $CLASSPATH'
+alias cls=clear
+alias color='export CLICOLOR=yes'
+contents () { rpm -qil $* 2>&1 | less ; }
+alias copy='cp -i'
+alias cp='cp -i'
+alias cpup='rsync -v --update --archive'
+alias ddump='dirs | tr " " "\n"'
+alias del='rm -i'
+diffb () { diff -b -w -E $* ; }
+dush () { du -sh $* ; }
+dusm () { du -sm $* ; }
+alias epoch='date +\%s'
+exe () { chmod a+x $* ; }
+ff () { find . -name $* -print ; }
+alias fn='declare -f'
+fps () { ps aux | grep -i $* | grep -v grep ; }
+fpw () { ps -a -x -w -w -o user,pid,ppid,stat,command | grep -i $* | grep -v grep ; }
+alias gita='git add'
+alias gitb='git branch -avv'
+alias gitd='git diff'
+alias gitda='git diff HEAD'
+alias gitdb='git diff -b -w'
+alias gitdno='git diff --name-only'
+alias gitdns='git diff --name-status'
+alias gitds='git diff --cached'
+alias gitdw='git diff --stat'
+alias gith='git help'
+alias gitl='git log --decorate=full'
+alias gitlg='git log --graph --decorate=full'
+alias gitls='git slog'
+alias gitlsa='git ls-tree -l -r HEAD'
+alias gitlv='git log --stat --decorate=full'
+alias gitm='git merge --no-commit'
+alias gitr='git remote -v'
+alias gits='git status'
+alias gitskip='git update-index --skip-worktree'
+alias gitnoskip='git update-index --no-skip-worktree'
+alias gitstl='git stash list'
+alias gitstu='git stash show -u'
+go () { pushd $* ; }
+gr () { grep -R $* * ; }
+alias h='history'
+alias hm='history 2>&1 | less'
+alias ht='history 35'
+alias ids="id | tr ',' '\n'"
+alias ipaddr="ifconfig en0 | grep 'inet ' | cut -f 2 -d ' '"
+alias jsonpp='python -mjson.tool'
+
+alias l.='ls -dCFH .[a-zA-Z0-9]*'
+alias la='ls -aCFH'
+alias lal='ls -alFH'
+alias lf='ls -CFH'
+alias lfl='ls -lFH'
+
+l.m  () { ls -dCFH .[a-zA-Z0-9]* 2>&1 | less ; }
+lalm () { ls -alFH $* 2>&1 | less ; }
+lfm  () { ls -CFH $* 2>&1 | less ; }
+lflm () { ls -lFH $* 2>&1 | less ; }
+lfls () { ls -lSFH $* 2>&1 | less ; }
+lflt () { ls -ltFH $* 2>&1 | less ; }
+
+alias ldpath='echo $LD_LIBRARY_PATH'
+alias loadavg='uptime'
+alias locate='mdfind -name'
+lock () { chmod a-w $* ; }
+alias locks='RCSlocks'
+alias mongodb='mongod --fork -f $MONGODB_CONF'
+alias msgtail='tail -f /var/log/syslog'
+alias msgs='less /var/log/syslog'
+msgt() { tail $* /var/log/syslog 2>&1 | less ; }
+alias mv='mv -i'
+alias nocl='unset CLASSPATH'
+alias nocolor='unset CLICOLOR'
+alias now='date +%y%m%d.%H%M'
+alias nsa='netstat -a 2>&1 | less'
+alias owns='dpkg -S'
+alias path='echo $PATH'
+alias pathdump='echo $PATH | tr ":" "\n"'
+alias pd=dirs
+alias pdd='dirs | tr " " "\n"'
+alias pe='env | sort 2>&1 | less'
+pkcontents () { dpkg -L $* 2>&1 | less ; }
+pkfind () { dpkg -S $* | cut -f1 -d: | sort | uniq | grep -v ',' ; }
+pkgrep () { dpkg -S $* | sort | less ; }
+pkinfo () { apt-cache show $* 2>&1 | less ; }
+pklist () { dpkg -l $* 2>&1 | less ; }
+pkstat () { dpkg -s $* 2>&1 | less ; }
+portps () { lsof -i :$* ; }
+alias pp=popd
+prt () { pr $* | lpr ; }
+alias psm='ps aux | less'
+ql () { qlmanage -p $* 2>&1 /dev/null ; }
+rd () { rcsdiff $* 2>&1 | less ; }
+alias rdj='rcsdiff *.java 2>&1 | less'
+alias ren='mv -i'
+rl () { rlog $* 2>&1 | less ; }
+alias ro='chmod 444'
+alias sb='source ~/.bashrc'
+alias seterm='TERM=vt100; tset -Q'
+alias sexterm='TERM=xterm; tset -Q'
+alias sha1='openssl dgst -sha1'
+alias src=source
+to () { pushd $* ; }
+alias today='date +%y%m%d'
+treed () { tree -d $* 2>&1 | less ; }
+treel () { tree $* 2>&1 | less ; }
+alias tron='export TRACE=-1'
+alias troff='unset TRACE'
+alias type=cat
+unexe () { chmod a-x $* ; }
+unlock () { chmod u+w $* ; }
+alias up='cd ..'
+alias vi=vim
+alias view=less
+vg () { gzip -dc $* 2>&1 | less ; }
+vt () { tar ztvf $* 2>&1 | less ; }
+xod () { od -tx1a $* ; }
+xj () { jar xvf $* ; }
+xt () { gzip -dc $* | tar xvf - ; }
+zipview () { unzip -l $* 2>&1 | less ; }
+
+complete -f -X '!*.pdf' adobe
+complete -c which
+complete -a alias
+complete -d cd
+complete -v echo
+complete -d go
+complete -f -X '!*.groovy' groovy
+complete -f -X '!*.java' javac
+complete -A signal kill
+complete -f less
+complete -c man
+complete -g newgrp
+complete -d pushd
+complete -a unalias
+complete -v unset

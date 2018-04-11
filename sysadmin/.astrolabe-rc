@@ -1,0 +1,14 @@
+export ANACONDA_HOME=/usr/local/anaconda
+export ASTRO_DATA=/opt/astrolabe/sample-data
+export EDITOR=vim
+
+export JAVA_HOME=/usr/lib/jvm/zulu-8-linux64
+export JDK_HOME=$JAVA_HOME
+export JAVA_OPTS='-server -Xms512m -Xmx2048m'
+
+export LESS='-X -e -c -M -PM%f (file\: %i/%m line\: %lb/%L) [%pb\%]'
+export LESSOPEN="|/usr/local/bin/lesspipe.sh %s"
+
+# Anaconda should follow system python to avoid problems
+export PATH=$PATH:${ANACONDA_HOME}/bin
+export PATH=$PATH:${JAVA_HOME}/bin

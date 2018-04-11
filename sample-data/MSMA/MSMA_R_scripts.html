@@ -1,0 +1,1587 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Untitled Document</title>
+</head>
+
+<body>
+<pre>
+
+Modern Statistical Methods for Astronomy With R Applications
+Eric D. Feigelson & G. Jogesh Babu
+
+R scripts
+These scripts may be cut and pasted into any R console.  
+They are self-contained and should reproduce the figures
+and results in the book.
+
+
+******************************************************************
+******************************************************************
+
+Chapter. 2 Probability
+
+# Set up 6 panel figure
+
+par(mfrow=c(3,2))
+
+# Plot upper left panel with three illustrative exponential p.d.f. distributions
+
+xdens <- seq(0,5,0.02)
+plot(xdens,dexp(xdens,rate=0.5), type='l', ylim=c(0,1.5), xlab='',
+   ylab='Exponential p.d.f.',lty=1)
+
+lines(xdens,dexp(xdens,rate=1), type='l', lty=2)
+lines(xdens,dexp(xdens,rate=1.5), type='l', lty=3)
+legend(2, 1.45, lty=1, substitute(lambda==0.5), box.lty=0)
+legend(2, 1.30, lty=2, substitute(lambda==1.0), box.lty=0)
+legend(2, 1.15, lty=3, substitute(lambda==1.5), box.lty=0)
+
+# Help files to learn these function
+
+help(seq) ; help(plot); help(par) ; help(lines); help(legend)
+
+# Plot upper right panel with three illustrative exponential c.d.f. distributions
+
+plot(xdens, pexp(xdens,rate=0.5), type='l', ylim=c(0,1.0), xlab='',
+   ylab='Exponential c.d.f.', lty=1)
+lines(xdens, pexp(xdens,rate=1), type='l', lty=2)
+lines(xdens, pexp(xdens,rate=1.5),type='l',lty=3)
+legend(3, 0.50, lty=1, substitute(lambda==0.5), box.lty=0)
+legend(3, 0.38, lty=2, substitute(lambda==1.0), box.lty=0)
+legend(3, 0.26, lty=3, substitute(lambda==1.5), box.lty=0)
+
+# Plot middle panels with illustrative normal p.d.f. and c.d.f. 
+
+xdens <- seq(-5, 5, 0.02)
+ylabdnorm <- expression(phi[mu~sigma^2] (x))
+plot(xdens, dnorm(xdens, sd=sqrt(0.2)), type='l', ylim=c(0,1.0), xlab='',
+   ylab=ylabdnorm,lty=1)
+lines(xdens,dnorm(xdens, sd=sqrt(1.0)), type='l', lty=2)
+lines(xdens,dnorm(xdens, sd=sqrt(5.0)), type='l', lty=3)
+lines(xdens,dnorm(xdens, mean=-2.0, sd=sqrt(0.5)), type='l', lty=4)
+leg1 <- expression(mu^' '==0, mu^' '==0, mu^' '==0, mu^' '==-2)
+leg2 <- expression(sigma^2==0.2, sigma^2==1.0, sigma^2==5.0, sigma^2==0.5,)
+legend(0.5, 1.0, lty=1:4, leg1, lwd=2, box.lty=0)
+legend(3.0, 1.01, leg2, box.lty=0)
+
+ylabpnorm <- expression(Phi[mu~sigma^2] (x))
+plot(xdens,pnorm(xdens,sd=sqrt(0.2)), type='l', ylim=c(0,1.0), xlab='',
+   ylab=ylabpnorm,lty=1)
+lines(xdens,pnorm(xdens, sd=sqrt(1.0)), type='l', lty=2)
+lines(xdens,pnorm(xdens, sd=sqrt(5.0)), type='l', lty=3)
+lines(xdens,pnorm(xdens, mean=-2.0, sd=sqrt(0.5)), type='l', lty=4)
+leg1 <- expression(mu^' '==0, mu^' '==0, mu^' '==0, mu^' '==-2)
+leg2 <- expression(sigma^2==0.2, sigma^2==1.0, sigma^2==5.0, sigma^2==0.5,)
+legend(0.5, 0.6, lty=1:4, leg1, lwd=2, box.lty=0)
+legend(3.0, 0.61, leg2, box.lty=0)
+
+# Plot bottom panels with illustrative lognormal p.d.f. and c.d.f. 
+
+xdens <- seq(0,3, 0.02)
+plot(xdens, dlnorm(xdens, meanlog=0, sdlog=5), type='l', ylim=c(0,2), xlab='',
+   ylab='Lognormal density', lty=1)
+lines(xdens, dlnorm(xdens, meanlog=0, sdlog=1), type='l', lty=2)
+lines(xdens, dlnorm(xdens, meanlog=0, sdlog=1/2), type='l', lty=3)
+lines(xdens, dlnorm(xdens, meanlog=0, sdlog=1/8), type='l', lty=4)
+leg1 <- expression(sigma==5, sigma==1, sigma==1/2, sigma==1/8)
+legend(1.8,1.8,lty=1:4,leg1,box.lty=0)
+
+plot(xdens,plnorm(xdens,meanlog=0,sdlog=5),type='l',ylim=c(0,1),xlab='x',
+    ylab='Lognormal distribution',lty=1)
+lines(xdens,plnorm(xdens,meanlog=0,sdlog=1),type='l',lty=2)
+lines(xdens,plnorm(xdens,meanlog=0,sdlog=1/2),type='l',lty=3)
+lines(xdens,plnorm(xdens,meanlog=0,sdlog=1/8),type='l',lty=4)
+leg1 <- expression(sigma==5,sigma==1,sigma==1/2,sigma==1/8)
+legend(1.5,0.6,lty=1:4,leg1,box.lty=0)
+
+# Return plot to single-panel format
+
+par(mfrow=c(1,1))
+
+
+******************************************************************
+******************************************************************
+
+Chapter 4  Probability Distribution Functions 
+
+# Define Pareto distributions for Salpeter IMF
+
+dpareto <- function(x, alpha=1.35, b=1) (alpha>0)*(b>0)^alpha / x^(alpha+1)
+ppareto <- function(x, alpha=1.35, b=1) (x > b)*(1-((b>0)/x)^(alpha>0))
+qpareto <- function(u, alpha=1.35, b=1) (b>0)/(1-u)^(1/(alpha>0))  # 0<u<1
+rpareto <- function(n, alpha=1.35, b=1) qpareto(runif(n),alpha,b)
+
+# Produce Pareto-distributed simulated dataset with n=500; plot 
+
+par(mfrow=c(1,3))
+z <- rpareto(500)
+dotchart(log10(z), main='', xlab='log stellar mass', pch=20, cex.lab=1.5)
+
+x <- seq(1, 50, len=1000)
+plot(log10(x), log10(dpareto(x)), type="l", ylab='', xlab='log stellar mass', 
+   cex.lab=1.5, cex.axis=1.5)
+lines(log10(x), log10(ppareto(x)), type="l", lty=2)
+legend(0.4, -0.3, legend=c('log(p.d.f)', 'log(c.d.f)'), lty=c(1,2), cex=1.5)
+
+u=seq(.0005, .9095, len=1000)
+plot(log10(qpareto(u)), u, type="l", xlab='log stellar mass', ylab='Quantile', 
+   cex.lab=1.5, cex.axis=1.5)
+par(mfrow=c(1,1))
+
+# Estimates of Pareto shape parameter (power law slope)
+
+npts <- 100
+alpha.MLE <- function(x)   1 / mean(log(x))
+alpha.MVUE <- function(x)  (1-(2/npts)) / mean(log(x))
+alpha.mom <- function(x)  1 / (1-1/mean(x))
+alpha.LS.EDF <- function(x) {
+   lsd <- log(sort(x)) ;  lseq <- log((npts:1) / npts)
+   tmp <- lm(lseq ~ lsd) 
+#   plot(lsd, lseq) ; abline(tmp,col=2)
+   -tmp$coef[2] }
+alpha.LS.hist <- function(x) {
+   hx <- hist(x, nclass=20, plot=F)
+   counts <- hx$counts
+   ldens <- log(hx$density[counts>0])
+   lmidpts <- log(hx$mids[counts>0])
+   tmp1 <- lm(ldens~lmidpts) 
+#   plot(lmidpts, ldens) ; abline(tmp1, col=2)
+   alpha.LS.hist <-  -1 - as.numeric(tmp1$coef[2])   
+   return(alpha.LS.hist) }
+alpha.LS.hist.wt <- function(x) {
+   hx <- hist(x, nclass=20, plot=F)
+   counts <- hx$counts
+   ldens <- log(hx$density[counts>0])
+   lmidpts <- log(hx$mids[counts>0])
+   tmp2 <- lm(ldens~lmidpts, weights=counts[counts>0]) 
+   alpha.LS.hist.wt <-  -1 - as.numeric(tmp2$coef[2]) 
+   return(alpha.LS.hist.wt)  } 
+six_alphas <-  function(x) {
+   out <- c(alpha.MLE(x), alpha.MVUE(x), alpha.mom(x), 
+          alpha.LS.EDF(x), alpha.LS.hist(x), alpha.LS.hist.wt(x))
+   return(out)  }
+
+# Comparison of alpha estimators on simulated datasets
+# Construct nsim simulated datasets with npts data points and alpha=1.35
+
+   nsim=500 ;   alpha_sim = NULL
+   for(i in 1:nsim) {
+        xtmp = rpareto(npts)
+        alpha_sim = rbind(alpha_sim,six_alphas(xtmp))  }
+        colnames(alpha_sim)=c('MLE','MVUE','Moments','LS_EDF','LS_hist',
+           'LS_hist_wt')
+
+# Compute mean integrated square error 
+
+   bias_sim = apply(alpha_sim,2,mean) - 1.35
+   var_sim =  apply(alpha_sim,2,var) *(nsim-1)/nsim
+   mise_sim =  bias_sim^2 + var_sim
+   rbind(bias_sim, var_sim, mise_sim)
+
+# Read Milky Way Galaxy and M 31 globular cluster K magnitudes
+
+GC_MWG <- read.table('http://astrostatistics.psu.edu/MSMA/datasets/
+	GlobClus_MWG.dat',header=T)
+GC_M31 <- read.table('http://astrostatistics.psu.edu/MSMA/datasets/
+	GlobClus_M31.dat',header=T)
+KGC_MWG <- GC_MWG[,2]  ; KGC_M31 <- GC_M31[,2]-24.44
+kseq <- seq(-15.0, -5.0, 0.25)
+
+# Fit normal distributions
+
+library(MASS)
+par(mfrow=c(1,2))
+hist(KGC_MWG, breaks=kseq, ylim=c(0,10), main='', xlab='K mag', 
+  ylab='N',col=gray(0.5))
+normfit_MWG <- fitdistr(KGC_MWG,'normal') ; normfit_MWG 
+lines(kseq, dnorm(kseq, mean=normfit_MWG$estimate[[1]], 
+  sd=normfit_MWG$estimate[[2]]) * normfit_MWG$n*0.25,lwd=2)
+hist(KGC_M31, breaks=kseq, ylim=c(0,50), main='',xlab='K mag',ylab='N',)
+normfit_M31 <- fitdistr(KGC_M31,'normal') ; normfit_M31
+lines(kseq,dnorm(kseq, mean=normfit_M31$estimate[[1]], 
+  sd=normfit_M31$estimate[[2]]) * normfit_M31$n*0.25, lwd=2)
+
+# Test for normality
+
+install.packages('nortest') ; library(nortest)
+install.packages('moments') ; library(moments)
+lillie.test(KGC_MWG) ; cvm.test(KGC_MWG); ad.test(KGC_MWG)
+
+lillie.test(KGC_M31) ; cvm.test(KGC_M31) ; ad.test(KGC_M31)
+pearson.test(KGC_M31)
+skewness(KGC_M31) ; agostino.test(KGC_M31) ; jarque.test(KGC_M31)
+kurtosis(KGC_M31) ; anscombe.test(KGC_M31) ; bonett.test(KGC_M31)
+shapiro.test(KGC_M31) ; sf.test (KGC_M31)
+
+# Test for multimodality
+
+library(diptest)
+dip(KGC_M31)
+
+
+******************************************************************
+******************************************************************
+
+Chapter 5.  Nonparametric Statistics
+
+# Data plots and summaries for asteroid densities
+
+asteroids <- read.table("http://astrostatistics.psu.edu/MSMA/datasets/
+   asteroid.dens.dat", header=T)
+astnames <- asteroids[,1] ; dens <- asteroids[,2] ; err <- asteroids[,3]
+dotchart(dens, labels=astnames, cex=0.9, xlab=expression(Density~(g/cm^3)))
+plot(dens, ylim=c(0,8), xlab="Asteroids", ylab=expression(Density~(g/cm^3)),pch=20)
+num <- seq(1,length(dens))
+segments(num, dens+err, num, dens-err)
+
+# Boxplot and summary statistics for asteroid data
+
+boxplot(asteroids[,2:3], varwidth=T, notch=T, xlab="Asteroids", ylab="Density",
+ pars=list(boxwex=0.3,boxlwd=1.5,whisklwd=1.5,staplelwd=1.5,outlwd=1.5,
+ font=2))
+summary(dens)
+mean(dens) ; sd(dens)
+median(dens) ; mad(dens)
+weighted.mean(dens,1/err^2)
+
+# Tests for normality
+
+shapiro.test(dens)
+install.packages('nortest') ; library('nortest')
+ad.test(dens) ; cvm.test(dens) ; lillie.test(dens) ; pearson.test(dens)
+install.packages('outliers') ; library('outliers')
+dixon.test(dens) ; chisq.out.test(dens)
+grubbs.test(dens) ; grubbs.test(dens,type=20)
+
+# Read magnitudes for Milky Way and M 31 globular clusters
+
+GC1 <- read.table("http://astrostatistics.psu.edu/MSMA//datasets/
+   GlobClus_MWG.dat",header=T)
+GC2 <- read.table("http://astrostatistics.psu.edu/MSMA/datasets/
+   GlobClus_M31.dat",header=T)
+K1 <- GC1[,2] ;  K2 <- GC2[,2]
+summary(K1) ; summary(K2)
+
+# Three estimates of the distance modulus to M 31
+
+DMmn <- mean(K2) - mean(K1) ;  DMmn
+sigDMmn <- sqrt(var(K1)/length(K1) + var(K2)/length(K2)) ; sigDMmn
+DMmed <- median(K2) - median(K1) ; DMmed
+sigDMmed <- sqrt(mad(K1)^2/length(K1) + mad(K2)^2/length(K2)) ; sigDMmed
+wilcox.test(K2, K1, conf.int=T)
+
+# e.d.f., quantile and Q-Q plots for globular cluster magnitudes
+
+plot(ecdf(K1), cex.points=0, verticals=T, xlab="K (mag)", ylab="e.d.f.", main="")
+plot(ecdf(K2-24.90), cex.points=0, verticals=T, add=T)
+text(-7.5, 0.8, lab="MWG")  ;  text(-10.5,0.9, lab="M 31")
+
+par(mfrow=c(1,3))
+qqplot(K1, K2-24.90, pch=20, cex.axis=1.3, cex.lab=1.3,  xlab="MWG", 
+   ylab="M31 - 24.90", main="")
+qqnorm(K1, pch=20, cex.axis=1.3, cex.lab=1.3, main="") 
+qqline(K1, lty=2, lwd=1.5)
+text(-2.5, -6, pos=4, cex=1.3, 'MWG normal QQ plot')
+qqnorm(K2-24.90, pch=20, cex.axis=1.3, cex.lab=1.3, main="") 
+qqline(K2-24.90, lty=2, lwd=1.5)
+text(-3, -7.5, pos=4, cex=1.3, 'M31 normal QQ plot')
+par(mfrow=c(1,1))
+
+# Plot e.d.f. with confidence bands 
+
+install.packages('sfsmisc') ; library('sfsmisc')
+ecdf.ksCI(K1,ci.col='black')
+
+# Nonparametric tests for normality
+
+install.packages('nortest') ; library(nortest)
+cvm.test(K1) ; cvm.test(K2)
+ad.test(K1) ; ad.test(K2)
+
+# Nonparametric two-sample tests for Milky Way and M31 globular clusters
+
+ks.test(K1, K2-24.90) # with distance modulus offset removed
+wilcox.test(K1, K2-24.90)
+mood.test(K1, K2-24.90)
+install.packages(cramer) ; library(cramer)
+cramer.test(K1, K2-24.90)
+
+# Parametric two-sample tests
+
+pooled_var <- ((length(K1)-1)*var(K1) + (length(K2)-1)*var(K2)) / 
+   (length(K1)+length(K2)-2)
+mean_diff <- (mean(K1) - mean(K2-24.90)) / 
+   sqrt(pooled_var * (1/length(K1)+1/length(K2)))
+mean_diff ; pnorm(mean_diff)
+t.test(K1, (K2-24.90), var.eq=T)
+var.test(K1, K2-24.90)
+
+# Input star formation contingency tables
+
+jets <- matrix(c(9,2,5,5), nrow=2)  ;  jets
+evol <- matrix(c(21,1,2,0,16,14,42,1,61,90,179,2,17,4,5,5,22,95,126,10),nrow=4)  
+evol
+
+# Test null hypotheses
+chisq.test(jets)  ;  fisher.test(jets)
+chisq.test(evol)
+fisher.test(evol[2:3,]) # Chamaeleon vs. Taurus sample
+fisher.test(evol[3:4,]) # Taurus vs. eta Cha sample
+
+# Association plot
+assocplot(evol,col=c("black","gray"),xlab='Regions',ylab='Evolutionary classes')
+
+
+******************************************************************
+******************************************************************
+
+Chapter 6. Density Estimation or Data Smoothing
+
+# Construct large and small samples of SDSS quasar redshifts and r-i colors
+
+qso <- read.table("http://astrostatistics.psu.edu/MSMA/datasets/SDSS_QSO.dat",head=T)
+dim(qso) ; names(qso) ; summary(qso)  ;  attach(qso)
+z.all <- z ;  z.200 <- z[1:200]
+r.i.all <-  r_mag - i_mag ; r.i.200 <- r.i.all[1:200]
+sig.r.i.all  <- sqrt(sig_r_mag^2 + sig_i_mag^2)  ; sig.r.i.200 <- sig.r.i.all[1:200]
+
+# Plot histogram and quantile function
+
+par(mfrow=c(1,2))
+hist(z.all, breaks='scott', main='', xlab='Redshift', col='black')
+plot(quantile(z.all, seq(1,100,1)/100, na.rm=T), pch=20, cex=0.5, 
+   xlab='Percentile', ylab='Redshift')
+par(mfrow=c(1,1))
+
+# Constant kernel density estimator
+
+plot(density(z.all), bw=bw.nrd(z.all), main='', xlab='Redshift', lwd=2)
+
+# Adaptive kernel smoother
+
+install.packages("quantreg") ; library(quantreg)
+akern.zqso <- akj(z.all, z=seq(0,5,0.01), alpha=0.5)
+str(akern.zqso)
+plot.window(xlim=c(0,5), ylim=c(0,0.6))
+plot(seq(0,5, 0.01), akern.zqso$dens, pch=20, cex=0.5,  xlab="Redshift", 
+   ylab="Density")
+rug(sample(z.all, 500))
+
+# Distribution with and without measurement errors
+
+aster <- read.table('http://astrostatistics.psu.edu/MSMA/datasets/
+   asteroid_dens.dat', head=T)
+summary(aster)  ;  dim(aster)  ;  attach(aster)
+install.packages('decon')  ;  library(decon)
+
+par(mfrow=c(1,2))
+plot(ecdf(Dens), main='', xlab=expression(Asteroid~density~~g/cm^3), ylab='c.d.f.', 
+   verticals=T, cex=0, lwd=1.5)
+x <- seq(0, 6, 0.02)
+cdf_sm <- DeconCdf(Dens,Err,x,bw=0.1)
+lines(cdf_sm, lwd=1.5)   
+
+plot(DeconPdf(Dens,Err,x,bw=0.1), main='', xlab=expression(Asteroid~density~~
+   g/cm^3), ylab='p.d.f.', lwd=1.5, add=T)
+lines(density(Dens, adjust=1/2), lwd=1.5, lty=2)
+par(mfrow=c(1,1))
+
+# Natural spline fit 
+
+install.packages("pspline") ; library(pspline)
+fit=sm.spline(z.200, r.i.200)
+plot(z.200, r.i.200, pch=20, cex=0.7, xlab="Redshift", ylab="r-i (mag)")
+lines(fit$x, fit$y, lwd=2)
+
+# Natural spline fit weighted by the variances of the measurement errors
+
+fitw <- sm.spline(z.200, r.i.200, w=sig.r.i.200^2)
+lines(fitw$x, fitw$y, lty=2, lwd=2)
+
+# Bivariate Nadaraya-Watson regression estimator with bootstrap errors
+
+install.packages("np") ; library(np)
+bw.NW <- npregbw(z.200, r.i.200, regtype='lc', bwtype='fixed') 
+npplot(bws=bw.NW, ylim=c(-0.25,0.7), plot.errors.method="bootstrap", 
+    plot.errors.bar='I', plot.errors.type='quantiles') 
+points(z.200, r.i.200, pch=20, cex=0.7)
+
+# Local regression
+# 1. Read SDSS quasar sample, N=77,429. Clean bad photometry
+
+qso <- read.table("http://astrostatistics.psu.edu/datasets/SDSS_QSO.dat",head=T)
+q1 <- qso[qso[,10] < 0.3,] ; q1 <- q1[q1[,12]<0.3,]
+dim(q1) ; names(q1) ; summary(q1)
+r_i <- q1[,9] - q1[,11] ; z <- q1[,4] ; r <- q1[,9]
+
+# 2. Plot two-dimensional smoothed distribution
+
+install.packages('ash') ; library(ash)
+nbin <- c(500, 500) ; ab <- matrix(c(0.0,-0.5,5.5,2.), 2,2)
+bins <- bin2(cbind(z,r_i), ab, nbin)
+f <- ash2(bins, c(5,5)) ; attributes(f)
+f$z <- log10(f$z)
+
+image(f$x, f$y, f$z, col=gray(seq(0.5,0.2,by=-0.02)), zlim=c(-2.0,0.2), 
+    main='', xlab="Redshift", ylab="r-i")
+contour(f$x, f$y, f$z,levels=c(-1.0,-0.5,0.3,0.5), add=T)
+
+# 3. Construct loess local regression lines
+
+z1 <- z[order(z)] ; r_i1 <- r_i[order(z)]
+loct1 <- loess(r_i1~z1, span=0.1, data.frame(x=z1,y=r_i1))
+summary(loct1)
+lines(z1, predict(loct1), lwd=2, col=2)
+z2 <- z1[z1>3.5]; r_i2 <- r_i1[z1>3.5]
+loct2 <- loess(r_i2~z2, span=0.2, data.frame(x=z2,y=r_i2))
+lines(z2, predict(loct2), lwd=2, col=3)
+
+# 4. Save evenly-spaced loess fit to a file 
+
+x1 <- seq(0.0, 2.5, by=0.02) ; x2 <- seq(2.52, 5.0, by=0.02)
+loctdat1 <- predict(loct1, data.frame(x=x1))
+loctdat2=predict(loct2, data.frame(x=x2))
+write(rbind(x1,loctdat1), sep=' ', ncol=2, file='qso.txt')
+write(rbind(x2,loctdat2), sep=' ', ncol=2, file='qso.txt', append=T)
+
+
+******************************************************************
+******************************************************************
+
+Chapter 7.  Regression
+
+# Linear regression with heteroscedastic measurement errors
+# Construct and plot dataset of SDSS quasars with 18<i<22
+
+qso <- read.table('http://astrostatistics.psu.edu/MSMA/datasets/SDSS_QSO.dat',
+   header=T)
+summary(qso)
+qso1 <- qso[((qso[,11]<22) & (qso[,11]>18)),c(11:14)]
+dim(qso1) ; summary(qso1) ; attach(qso1)
+sig_z_mag[sig_z_mag<0.01] <- 0.01
+
+dev.new(2)
+plot(i_mag, z_mag, pch=20, cex=0.1, col=grey(0.5), xlim=c(18,21.5), 
+   ylim=c(17.5,22), xlab="SDSS i (mag)", ylab="SDSS z (mag)")
+for(i in 50:150) {
+   lines(c(i_mag[i],i_mag[i]),c((z_mag[i]+sig_z_mag[i]),
+      (z_mag[i]-sig_z_mag[i])))
+   lines(c((i_mag[i]+sig_i_mag[i]),(i_mag[i]-sig_i_mag[i])),
+      c(z_mag[i],z_mag[i]))   }
+
+# Ordinary least squares fit
+
+fit_ols <- lm(z_mag~i_mag)
+summary(fit_ols) 
+confint(fit_ols, level=0.997)
+dev.set(2) ;  abline(fit_ols$coef, lty=1 ,lwd=2)
+
+dev.new(3) ; par(mfrow=c(2,2))
+plot(fit_ols, which=c(2:5), caption='', sub.caption='' ,pch=20, cex=0.3, 
+   cex.lab=1.3, cex.axis=1.3)
+par(mfrow=c(1,1))
+
+# Weighted least squares fit
+
+fit_wt <- lm(z_mag~i_mag, x=T, weights=1/(sig_z_mag*sig_z_mag))
+summary(fit_wt)
+dev.set(2) ; abline(fit_wt$coef,lty=2,lwd=2)
+
+# Generalized linear modeling
+
+fit_glm_gau <- glm(z_mag ~ i_mag) ; summary(fit_glm_gau)
+fit_glm_gam <- glm(z_mag ~ i_mag,family=Gamma) ; summary(fit_glm_gam)
+
+# Robust M-estimator
+
+library(MASS)
+fit_M <- rlm(z_mag~i_mag, method='M', weights=1/(sig_z_mag*sig_z_mag), 
+   wt.method='inv.var')
+summary(fit_M) 
+length(which(fit_M$w<1.0))  
+dev.set(3) ; hist(fit_M$w, breaks=50, ylim=c(0,700), xlab='Robust regression 
+   weights',  main='')
+aM <- fit_M$coef[[1]] ; bM <- fit_M$coef[[2]]
+dev.set(2) ; lines(c(18,22), c(aM+bM*18, aM+bM*22), lty=3, lwd=3)
+
+# Thiel-Sen regression line
+
+install.packages('zyp') ; library(zyp)
+fit_ts <- zyp.sen(z_mag~i_mag, qso1[1:8000,])
+confint.zyp(fit_ts)
+dev.set(2) ; abline(fit_ts$coef, lty=4, lwd=2)
+
+# Linear quantile regression
+
+install.packages('quantreg') ; library(quantreg)
+fit_rq <- rq(z_mag~i_mag, tau=c(0.10,0.50,0.90))
+print.summary.rq(fit_rq) 
+par(mfrow=c(1,2))
+plot(i_mag, z_mag, pch=20, cex=0.1, col=grey(0.5), xlim=c(18,22),
+   ylim=c(17.5,22), xlab="SDSS i (mag)", ylab="SDSS z (mag)")
+for(j in 0:2) { 
+ aquant=fit_rq$coef[[2*j+1]] ; bquant=fit_rq$coef[[2*j+2]]
+ lines(c(18,22),c((aquant+bquant*18),(aquant+bquant*22)),lwd=2) }
+
+# Nonlinear quantile regression
+
+fit_rqss.1 <- rqss(z_mag~qss(i_mag), data=qso1, tau=0.10)
+fit_rqss.5 <- rqss(z_mag~qss(i_mag), data=qso1, tau=0.50)
+fit_rqss.9 <- rqss(z_mag~qss(i_mag), data=qso1, tau=0.90)
+plot.rqss(fit_rqss.1, rug=F, ylim=c(17.5,22), titles='')
+points(i_mag, z_mag, cex=0.1, pch=20, col=grey(0.5))
+plot.rqss(fit_rqss.1, shade=F, rug=F, add=T, titles='', lwd=2)
+plot.rqss(fit_rqss.5, shade=F, rug=F, add=T, titles='', lwd=2)
+plot.rqss(fit_rqss.9, shade=F, rug=F, add=T, titles='', lwd=2)
+par(mfrow=c(1,1))
+
+# Fit Sersic function to NGC 4472 elliptical galaxy surface brightness profile
+
+NGC4472 <- 
+   read.table("http://astrostatistics.psu.edu/MSMA/datasets/NGC4472_profile.dat", 
+   header=T)
+attach(NGC4472)
+NGC4472.fit <-  nls(surf_mag ~ -2.5*log10(I.e * 10^(-(0.868*n-0.142)*
+   ((radius/r.e)^{1/n}-1))) + 26, data=NGC4472, start=list(I.e=20.,
+   r.e=120.,n=4.), model=T, trace=T)
+summary(NGC4472.fit)
+deviance(NGC4472.fit)
+logLik(NGC4472.fit)
+
+# Plot NGC 4472 data and best-fit model
+
+plot(NGC4472.fit$model$radius, NGC4472.fit$model$surf_mag, pch=20, 
+   xlab="r  (arcsec)", ylab=expression(mu ~~ (mag/sq.arcsec)), ylim=c(16,28), 
+   cex.lab=1.5, cex.axis=1.5)
+lines(NGC4472.fit$model$radius, fitted(NGC4472.fit))
+
+# Fit and plot radial profiles of NGC 4406 and NGC 4451
+
+NGC4406 <- 
+   read.table("http://astrostatistics.psu.edu/MSMA/datasets/NGC4406_profile.dat", 
+   header=T)
+attach(NGC4406)
+NGC4406.fit <- nls(surf_mag ~ -2.5*log10(I.e * 10^(-(0.868*n-0.142)*
+   ((radius/r.e)^{1/n}-1))) + 32, data=NGC4406, start=list(I.e=20.,
+   r.e=120.,n=4.), model=T, trace=T)
+summary(NGC4406.fit)
+points(NGC4406.fit$model$radius, NGC4406.fit$model$surf_mag, pch=3)
+lines(NGC4406.fit$model$radius, fitted(NGC4406_fit))
+
+NGC4551 <- 
+   read.table("http://astrostatistics.psu.edu/MSMA/datasets/NGC4551_profile.dat", 
+   header=T)
+attach(NGC4551)
+NGC4551.fit <-  nls(surf_mag ~ -2.5*log10(I.e * 10^(-(0.868*n-0.142)*
+   ((radius/r.e)^{1/n}-1))) + 26, data=NGC4551, start=list(I.e=20.,r.e=15.,n=4.), 
+   model=T, trace=T)
+summary(NGC4551.fit)
+points(NGC4551.fit$model$radius, NGC4551.fit$model$surf_mag, pch=5)
+lines(NGC4551.fit$model$radius, fitted(NGC4551_fit))
+legend(500, 20, c("NGC 4472","NGC 4406", "NGC 4551"), pch=c(20,3,5))
+
+# NGC 4472 analysis
+# Residual plot
+
+plot(NGC4472.fit$model$radius,residuals(NGC4472.fit), xlab="r (arcsec)", 
+   ylab="Residuals", pch=20, cex.lab=1.5, cex.axis=1.5)
+lines(supsmu(NGC4472.fit$model$radius, residuals(NGC4472.fit), span=0.05), 
+   lwd=2)
+
+# Test for normality of residuals 
+
+qqnorm(residuals(NGC4472.fit) / summary(NGC4472.fit)$sigma) 
+abline(a=0,b=1)
+shapiro.test(residuals(NGC4472.fit) / summary(NGC4472.fit)$sigma)
+
+# Bootstrap parameter estimates
+
+install.packages('nlstools') ; library(nlstools)
+NGC4472.boot <- nlsBoot(NGC4472.fit)
+summary(NGC4472.boot)
+curve(dnorm(x,m=5.95, sd=0.10)*58/5.95, xlim=c(5.6,6.4), ylim=c(0,50))
+hist(NGC4472.boot$coefboot[,3], breaks=50, add=T)  # not shown
+
+
+******************************************************************
+******************************************************************
+
+Chapter 8.  Multivariate Analysis
+
+# Overview of globular cluster properties
+
+GC = read.table("http://astrostatistics.psu.edu/MSMA/datasets/GlobClus_prop.dat", 
+   header=T, fill=T)
+summary(GC)
+manyhist <- function(x) { 
+      par(mfrow=n2mfrow(dim(x)[2]))  
+      for (i in 1:dim(x)[2]) { name=names(x)[i]                
+             hist(x[,i], main='', breaks='FD', ylab='', xlab=name) }}
+      par(mfrow=c(1,1))
+manyhist(GC[,2:13])
+
+# Univariate boxplots and normal quantile-quantile plots for two variables
+
+par(mfrow=c(1,4))
+boxplot(GC[,8], main='', ylab=expression(Core~r~~ (pc)), pars=list(xlab='', cex.lab=1.3, cex.axis=1.3, pch=20))
+qqnorm(GC[,8], main='', xlab='', ylab='', cex.lab=1.3, cex.axis=1.3, pch=20)
+boxplot(GC[,20], main='', ylab=expression(CSB ~~(mag/arcmin^2)), 
+   cex.lab=1.3, cex.axis=1.3, pars=list(xlab='', pch=20))
+qqnorm(GC[,20], main='', xlab='', ylab='', cex.lab=1.3, 
+   cex.axis=1.3, pch=20)
+qqline(GC[,20])
+par(mfrow=c(1,1))
+
+#  Prepare the data
+# 1. Remove objects with NA entries, remove labels
+
+dim(GC) ; GC1 <- na.omit(GC[,-1]) ; dim(GC1)
+
+# 2. Standardize variables 
+
+GC2 <- scale(GC1)
+
+# 3. Separate locational and dynamical variables
+
+GCloc <- GC2[,+c(1:4)]
+GCdyn <- GC2[,-c(1:4)]
+
+# 4. Remove two bad outliers
+
+GCdyn1 <- GCdyn[-c(which.max(GCdyn[,4]), which.max(GCdyn[,11])),]
+GCloc1 <- GCloc[-c(which.max(GCdyn[,4]), which.max(GCdyn[,11])),]
+
+# Bivariate relationships
+
+cor(GCdyn1, method='kendall')  
+var(GCdyn1)
+pairs(GCdyn1[,3:8],pch=20,cex=0.4)
+
+# Elaborated color pairs plot
+
+library(MASS)
+pairs(GCdyn1[,5:8],main='',labels=names(GCdyn1[5:8]), panel=function(x,y) {
++    	abline(lsfit(x,y)$coef,lwd=2,col='deeppink2')
++       lines(lowess(x,y),lwd=3,col='blue3',lty=2)
++ 	points(x,y,pch=21,bg = c("red", "green3", "blue"))
++ 	rug(jitter(x,factor=3),side=1,col='lightcoral',ticksize=-.05)
++ 	rug(jitter(y,factor=3),side=2,col='cornflowerblue',ticksize=-.05)
++ 	contour(kde2d(x,y)$x, kde2d(x,y)$y, kde2d(x,y)$z, drawlabels=F,add=T, col='darkblue',nlevel=4)
++ 	})
+
+# PCA for dynamical variables.
+
+PCdyn <- princomp(GCdyn1)
+plot(PCdyn, main='')
+summary(PCdyn) 
+loadings(PCdyn)
+biplot(PCdyn, col='black', cex=c(0.6,1))
+
+# Add principal component values into the data frame
+
+PCdat <- data.frame(names=row.names(GCdyn1), GCdyn1, PCdyn$scores[,1:4])
+
+# Multiple regression to predict globular cluster central surface brightnesses
+
+attach(GCdyn)
+CSB_fit1 <- lm(Cent.surf.bright~.-Cent.surf.bright,data=GCdyn) ; CSB_fit1
+CSB_fitt <- lm(Cent.surf.bright~.,data=GCdyn[,c(7:11,13)]) ; CSB_fit2
+str(CSB_fit2)
+summary(CSB_fit2) 
+sd(CSB_fit2$residuals)
+par(mfrow=c(2,1))
+plot(CSB_fit2$fitted.values, Cent.surf.bright, pch=20) 
+qqnorm(CSB_fit2$residuals, pch=20, main='') 
+qqline(CSB_fit2$residuals)
+par(mfrow=c(1,1))
+
+# MARS nonlinear regression
+
+install.packages('earth') ; library(earth)
+CSB_fit3 <- earth(Cent.surf.bright~.-Cent.surf.bright, data=GCdyn) ; CSB_fit3
+sd(CSB_fit3$residuals) 
+qqnorm(CSB_fit2$residuals) ; qqline(CSB_fit2$residuals)
+
+# Some multivariate display techniques: 
+# interactive 3-dim scatter plot; 4-dim bubble plot; parallel coordinates plot
+
+library(rgl)
+open3d() ; plot3d(GCdyn1[,5:7]) 
+snapshot3d(file='GlobClus3D.png') 
+
+library(lattice)
+cloud(GCdyn1[,5]~GCdyn1[,6]*GCdyn[,7], screen=list(z=60,x=45,y=20),
+    xlab='log.t.rad', ylab='log.rho.cen', zlab='conc', col=1, pch=1, cex=GCdyn1[,8]+1)
+
+parallel(~GCdyn1, col=c('darkred','darkgreen','orange','blue','black'))
+
+
+******************************************************************
+******************************************************************
+
+Chapter 9.  Clustering, Classification and Data Mining
+
+# Color-magnitude diagram for low-redshift COMBO-17 galaxies
+
+COMBO_loz=read.table('http://astrostatistics.psu.edu/MSMA/datasets/COMBO17_lowz.dat', 
+   header=T, fill=T)
+dim(COMBO) ; names(COMBO)
+par(mfrow=c(1,2))
+plot(COMBO_loz, pch=20, cex=0.5, xlim=c(-22,-7), ylim=c(-2,2.5), 
+   xlab=expression(M[B]~~(mag)), ylab=expression(M[280] - M[B]~~(mag)), 
+   main='')
+
+# Two-dimensional kernel-density estimator
+
+library(MASS)
+COMBO_loz_sm <- kde2d(COMBO_loz[,1], COMBO_loz[,2], h=c(1.6,0.4), 
+   lims = c(-22,-7,-2,2.5), n=500)
+image(COMBO_loz_sm, col=grey(13:0/15), xlab=expression(M[B]~~(mag)), 
+   ylab=expression(M[280] - M[B]~~(mag)), xlim=c(-22,-7), ylim=c(-2,2.5), 
+   xaxp=c(-20,-10,2))
+par(mfrow=c(1,1))
+
+# Standardize variables
+
+Mag_std <- scale(COMBO_loz[,1]) 
+Color_std <- scale(COMBO_loz[,2])
+COMBO_std <- cbind(Mag_std,Color_std)
+
+# Hierarchical clustering
+
+COMBO_dist <- dist(COMBO_std)
+COMBO_hc <- hclust(COMBO_dist, method='complete')
+COMBO_coph <- cophenetic(COMBO_hc)
+cor(COMBO_dist, COMBO_coph)
+
+# Cutting the tree at k=5 clusters
+
+plclust(COMBO_hc, label=F)
+COMBO_hc5a <- rect.hclust(COMBO_hc, k=5, border='black') 
+str(COMBO_hc5a)
+COMBO_hc5b <- cutree(COMBO_hc, k=5) 
+str(COMBO_hc5b)
+plot(COMBO_loz, pch=(COMBO_hc5b+19), cex=0.7, xlab=expression(M[B]~~(mag)), 
+   ylab=expression(M[280] - M[B]~~(mag)), main='')
+
+# Density-based clustering algorithm
+
+install.packages('fpc') ; library(fpc)
+COMBO_dbs <-  dbscan(COMBO_std, eps=0.1, MinPts=5, method='raw')
+print.dbscan(COMBO_dbs) ; COMBO_dbs$cluster
+plot(COMBO_loz[COMBO_dbs$cluster==0,], pch=20, cex=0.7, xlab='M_B (mag)',
+   ylab='M_280 - M_B (mag)')
+points(COMBO_loz[COMBO_dbs$cluster==2,], pch=2, cex=1.0)
+points(COMBO_loz[COMBO_dbs$cluster==1 | COMBO_dbs$cluster==3,], pch=1, cex=1.0)
+
+# r-band distribution of Sloan quasars
+
+SDSS_qso <- read.table("http://astrostatistics.psu.edu/MSMA/datasets/SDSS_17K.dat",
+   header=T)
+dim(SDSS_qso) ; summary(SDSS_qso)
+qso_r <- SDSS_qso[,5] ; n_qso <- length(qso_r)
+par(mfrow=c(1,2))
+hist(qso_r, breaks=100, main='', xlim=c(16,26))
+ 
+#  Normal mixture model
+
+install.packages('mclust')  ; library(mclust)
+fit.mm <- Mclust(qso_r,modelNames="V") 
+plot(fit.mm, ylim=c(-67000,-65000))
+
+str(fit.mm) 
+fit.mm$parameters$mean 
+sqrt(fit.mm$parameters$variance$sigmasq)
+fit.mm$parameters$pro
+
+par(mfrow=c(1,1))
+plot(ecdf(qso_r), xlim=c(16,26), xlab=' r (mag)', main='')
+
+r.seq <- seq(10,30,0.02)
+sum.comp <- rep(0,length(r.seq))
+for (i in 1:fit.mm$G) { sum.comp <- sum.comp +  pnorm(r.seq, mean=
+    fit.mm$parameters$mean[[i]], sd=sqrt(fit.mm$parameters$variance$sigmasq[[i]])) * 
+    fit.mm$parameters$pro[[i]] }
+lines(r.seq, sum.comp, lwd=3, lty=2)
+for (i in 1:fit.mm$G) {lines(r.seq, dnorm(r.seq, mean=fit2$parameters$mean[[i]], 
+   sd=sqrt(fit2$parameters$variance$sigmasq[[i]])) * fit2$parameters$pro[[i]])  }
+
+# Model-based clustering
+
+library(mclust)
+COMBO_mclus <- mclustBIC(COMBO_loz,modelNames='VVV')
+plot(COMBO_mclus, col='black')
+COMBO_sum_mclus <- summary.mclustBIC(COMBO_mclus,COMBO_loz,3)
+COMBO_sum_mclus$parameters ; COMBO_sum_mclus$classification
+COMBO_sum_mclus$z ; COMBO_sum_mclus$uncertainty
+plot(COMBO_loz, pch=(19+COMBO_sum_mclus$classification), cex=1.0, xlab='M_B (mag)', 
+   ylab='M_280 - M_B (mag)', main='COMBO-17 MVN model clustering (k=3)',
+   cex.lab=1.3, cex.axis=1.3)
+
+# R script for constructing SDSS test and training datasets is given 
+# in Appendix C.
+
+# Unsupervised k-means partitioning
+
+SDSS.kmean <- kmeans(SDSS_test,6)
+print(SDSS.kmean$centers)
+plot(SDSS_test[,1], SDSS_test[,2], pch=20, cex=0.3, col=gray(SDSS.kmean$cluster/7), 
+   xlab='u-g (mag)', ylab='g-r (mag)', xlim=c(-0.5,3), ylim=c(-0.6,1.5)) 
+
+# Linear discriminant analysis
+
+library(MASS)
+SDSS_lda <- lda(SDSS_train[,1:4], as.factor(SDSS_train[,5]))
+SDSS_train_lda <- predict(SDSS_lda, SDSS_train[,1:4])
+SDSS_test_lda <- predict(SDSS_lda, SDSS_test[,1:4])
+
+par(mfrow=c(2,1))
+plot(SDSS_test[,1],SDSS_test[,2], xlim=c(-0.7,3), ylim=c(-0.7,1.8), pch=20, 
+   col=SDSS_test_lda$class, cex=0.5, main='', xlab='u-g (mag)', ylab='g-r (mag)') 
+
+# k-nn classification
+
+install.packages('class') ; library(class)
+SDSS_knn4 <- knn(SDSS_train[,1:4], SDSS_test, 
+   as.factor(SDSS_train[,5]), k=4, prob=T)
+plot(SDSS_test[,1], SDSS_test[,2], xlim=c(-0.7,3), ylim=c(-0.7,1.8), pch=20, 
+   col=SDSS_knn4, cex=0.5, main='', xlab='u-g (mag)', ylab='g-r (mag)') 
+
+# Validation of k-nn classification
+
+SDSS_train_lda <- lda(SDSS_train[,1:4], as.factor(SDSS_train[,5]))
+SDSS_train_knn4 <- knn(SDSS_train[,1:4], SDSS_train[,1:4], SDSS_train[,5],k=4)
+
+plot(jitter(as.numeric(SDSS_train_lda$class), factor=0.5), jitter(as.numeric
+   (SDSS_train[,5]), factor=0.5), pch=20, cex=0.5, xlab='LDA class',
+   ylab='True class', xaxp=c(1,3,2),yaxp=c(1,3,2))
+plot(jitter(as.numeric(SDSS_train_knn4), factor=0.5), jitter(as.numeric
+   (SDSS_train[,5]), factor=0.5), pch=20, cex=0.5, xlab='k-nn class',
+   ylab='True class', xaxp=c(1,3,2),yaxp=c(1,3,2))
+par(mfrow=c(1,1))
+
+# Single layer neutral network
+
+options(size=100, maxit=1000) 
+SDSS_nnet <- multinom(as.factor(SDSS_train[,5]) ~ SDSS_train[,1] + SDSS_train[,2] + 
+   SDSS_train[,3] + SDSS_train[,4], data=SDSS_train)
+SDSS_train_nnet <- predict(SDSS_nnet,SDSS_train[,1:4])
+plot(jitter(as.numeric(SDSS_train_nnet), factor=0.5), jitter(as.numeric
+   (SDSS_train[,5]), factor=0.5), pch=20, cex=0.5, xlab='nnet class',
+   ylab='True class', xaxp=c(1,3,2),yaxp=c(1,3,2))
+
+# Classification And Regression Tree model, prediction and validation
+
+library('rpart')
+SDSS_rpart_mod <- rpart(SDSS_train[,5] ~., data=SDSS_train[,1:4])
+SDSS_rpart_test_pred <- predict(SDSS_rpart_mod, SDSS_test)
+SDSS_rpart_train_pred <- predict(SDSS_rpart_mod, SDSS_train)
+summary(SDSS_rpart_mod) ; str(SDSS_rpart_mod)
+
+plot(SDSS_test[,1], SDSS_test[,2], xlim=c(-0.7,3), ylim=c(-0.7,1.8), pch=20, 
+   col=round(SDSS_rpart_test_pred), cex=0.5,
+   main='', xlab='u-g (mag)', ylab='g-r (mag)')
+plot(jitter(SDSS_rpart_train_pred, factor=5), jitter(SDSS_train[,5]), pch=20, 
+   cex=0.5, xlab='CART class', ylab='True class',yaxp=c(1,3,2))
+
+plot(SDSS_rpart_mod, branch=0.5, margin=0.05) 
+text(SDSS_rpart_mod, digits=3, use.n=T, cex=0.8)
+plotcp(SDSS_rpart_mod, lwd=2, cex.axis=1.3, cex.lab=1.3)
+
+
+# Support Vector Machine model, prediction and validation
+
+install.packages('e1071') ; library(e1071)
+SDSS_svm_mod <- svm(SDSS_train[,5] ~.,data=SDSS_train[,1:4],cost=100, gamma=1)
+summary(SDSS_svm_mod) ; str(SDSS_svm_mod) 
+SDSS_svm_test_pred <- predict(SDSS_svm_mod, SDSS_test)
+SDSS_svm_train_pred <- predict(SDSS_svm_mod, SDSS_train)
+
+plot(SDSS_test[,1], SDSS_test[,2], xlim=c(-0.7,3), ylim=c(-0.7,1.8), pch=20, 
+   col=round(SDSS_svm_test_pred), cex=0.5, main='',
+   xlab='u-g (mag)', ylab='g-r (mag)')
+plot(SDSS_svm_train_pred, jitter(SDSS_train[,5]), pch=20, cex=0.5, 
+   xlab='SVM class', ylab='True class', yaxp=c(1,3,2))
+
+# Final SVM classification of the test set
+
+par(mfrow=c(1,3))
+plot(SDSS_test[,1], SDSS_test[,2], xlim=c(-0.7,3), col=round(SDSS_svm_test_pred), 
+   ylim=c(-0.7,1.8), pch=20, cex=0.5, main='', xlab='u-g (mag)',ylab='g-r (mag)') 
+plot(SDSS_test[,2], SDSS_test[,3], xlim=c(-0.7,1.8), col=round(SDSS_svm_test_pred),
+   ylim=c(-0.7,1.8), pch=20, cex=0.5, main='', xlab='g-r (mag)',ylab='r-i (mag)') 
+plot(SDSS_test[,3], SDSS_test[,4], xlim=c(-0.7,1.8), col=round(SDSS_svm_test_pred),
+   ylim=c(-1.1,1.3), pch=20, cex=0.5, main='', xlab='r-i (mag)',ylab='i-z (mag)') 
+par(mfrow=c(1,1))
+
+SDSS_test_svm_out <- cbind(SDSS[,6], SDSS[,7], SDSS_test, SDSS_svm_test_pred)
+names(SDSS_test_svm_out)[c(1,2,7)] <- c('R.A.', 'Dec', 'SVM Class')
+write.table(format(SDSS_test_svm_out), file='SDSS_test_svm.out',sep='\\t',quote=F)
+
+
+******************************************************************
+******************************************************************
+
+Chapter 10. Nondetections: Censored and Truncated Data
+
+# Construct sample of X-ray luminosities of low-redshift (z<0.3) Sloan quasars
+qso <- read.table("http://astrostatistics.psu.edu/MSMA/datasets/SDSS_QSO.dat", 
+   head=T, fill=T)
+
+dim(qso) ; names(qso) ; summary(qso)
+qso.lowz <- qso[qso[,2]<0.3,]
+dim(qso.lowz) ; names(qso.lowz) ; summary(qso.lowz)
+attach(qso.lowz)
+
+# X-ray luminosities for detections and (approximately) for upper limits
+
+ROSAT[ROSAT < (-8.900)] <- NaN  # X-ray nondetections
+Dist <- (3*10^{10})*z*(3.09*10^{24}) / (73*10^5)  
+XLum <- 8.3*10^(-12)*10^(ROSAT) * (4*pi*Dist^2)  
+XLum[is.na(ROSAT)] <- 1.*10^(-12)*runif(1)* (4*pi*Dist[is.na(ROSAT)]^2)   
+
+par(mfrow=c(1,2))
+plot(log10(XLum[!is.na(ROSAT)]), ylim=c(42.5,45), xlab='', 
+   ylab='log(Lx) erg/s', pch=20)
+plot(log10(XLum[is.na(ROSAT)]), ylim=c(42.5,45), xlab='', 
+   ylab='log(Lx) erg/s', pch=25)
+par(mfrow=c(1,1))
+
+# Construct quasar Kaplan-Meier luminosity function and 95% confidence band
+
+library(survival)
+Xstatus <- seq(1,1,length.out=400)  # 1 = detected
+Xstatus[is.na(ROSAT)] <- 0  # 0 = right-censored
+survobj <- Surv(-XLum, Xstatus)
+KM.XLF<- survfit(survobj~1, conf.int=0.95, conf.type='plain', 
+   conf.lower='modified')
+KM.output <- summary(survfit(survobj~1))
+
+# Plot Kaplan-Meier estimator with confidence bands
+
+plot(log10(-KM.XLF$time), KM.XLF$surv,  ylim=c(0,1), pch=20, cex=0.5, main='', 
+   xlab=expression(log*L[x]), ylab='Kaplan-Meier estimator')
+lines(log10(-KM.XLF$time), KM.XLF$upper, lty=2) 
+lines(log10(-KM.XLF$time), KM.XLF$lower, lty=2)
+
+# Prepare data for survival two-sample tests
+# Construct subsamples for XLFs of radio detected vs. undetected quasars
+# Class = 1 are radio detections, Class = 2 are radio nondetections
+# X-ray luminosities are obtained from ROSAT counts
+
+radio.obs <- qso.lowz[qso.lowz[,15]>(-1),]  
+attach(radio.obs)
+radio.class <- seq(1,1,length.out=370)  
+for(i in 1:370) if(radio.obs[i,15]>0) radio.class[i]=2 
+ROSAT[ROSAT < (-8.900)] <- NaN  
+Xstatus <- seq(1,1,length.out=370)  
+Xstatus[is.na(ROSAT[1:370])] <- 0  
+Dist <- (3*10^{10})*z*(3.09*10^{24}) / (73*10^5)  
+XLum <- seq(1,1,length.out=370)
+XLum[1:370] <- 8.3*10^(-12)*10^(ROSAT) * (4*pi*Dist^2)  
+XLum[is.na(ROSAT[1:370])] <- 1.*10^(-12)*runif(1)* (4*pi*Dist[is.na(ROSAT)]^2)   
+
+# Apply five two-sample tests for radio detected vs. nondetected subsamples
+
+survdiff(Surv(-XLum,Xstatus) ~ radio.class, rho=0)
+survdiff(Surv(-XLum,Xstatus) ~ radio.class, rho=1)
+
+install.packages('surv2sample') ; library(surv2sample)
+surv2.ks.out <- surv2.ks(Surv(-XLum,Xstatus), radio.class,approx='boot')
+surv2.ks.out
+
+# Read dataset on beryllium and lithium abundances in stars
+abun <- read.table('http://astrostatistics.psu.edu/MSMA/datasets/censor_Be.dat',
+   header=T)
+dim(abun) ; names(abun) ; attach(abun)
+
+# Boxplot of abundances for stars with and without planets
+
+install.packages('NADA') ; library(NADA)
+cen_Be <- seq(FALSE, FALSE, length=68) ; cen_Be[Ind_Be==0] <- TRUE
+cen_Li <- seq(FALSE, FALSE, length=68) ; cen_Li[Ind_Li==0] <- TRUE
+Type_factor <- as.factor(Type)
+par(mfrow=c(1,2))
+cenboxplot(logN_Be, cen_Be, Type_factor, log=FALSE, ylab='log N(Be)', 
+   names=c('Planets','No planets'), boxwex=0.5, notch=TRUE, varwidth=TRUE,
+   cex.axis=1.5, cex.lab=1.5, lwd=2)
+cenboxplot(logN_Li, cen_Li, Type_factor, log=FALSE, ylab='log N(Li)',
+   names=c('Planets','No planets'), boxwex=0.5, notch=TRUE, varwidth=TRUE,
+   cex.axis=1.5, cex.lab=1.5, lwd=2)
+par(mfrow=c(1,1))
+
+# Test significance of possible lithium abundance effect
+
+logN_Li1 <- logN_Li[-c(1,23)] ; cen_Li1 <- cen_Li[-c(1,23)] 
+Type_factor1 <- Type_factor[-c(1,23)] # remove NaN values
+cendiff(logN_Li1, cen_Li1, Type_factor1, rho=0) 
+cendiff(logN_Li1, cen_Li1, Type_factor1,rho=1)
+
+# Reproduce Santos et al. (2002) plot of stellar beryllium vs. lithium abundance
+
+ind_det1 <- which(Ind_Li==1 & Ind_Be==1 & Type==1) # filled circles
+ind_det2 <- which(Ind_Li==1 & Ind_Be==1 & Type==2) # open circles
+ind_left1 <- which(Ind_Li==0 & Ind_Be==1 & Type==1) 
+ind_left2 <- which(Ind_Li==0 & Ind_Be==1 & Type==2) 
+ind_down1 <- which(Ind_Li==1 & Ind_Be==0 & Type==1) 
+ind_down2 <- which(Ind_Li==1 & Ind_Be==0 & Type==2)
+ind_both1 <- which(Ind_Li==0 & Ind_Be==0 & Type==1) 
+ind_both2 <- which(Ind_Li==0 & Ind_Be==0 & Type==2)
+
+plot(logN_Li[ind_det1], logN_Be[ind_det1], xlim=c(-0.6,3.5), ylim=c(-0.2,1.5),
+   main="", xlab="log N(Li)", 
+   ylab="log N(Be)", pch=16, lwd=2) # plot detections
+points(logN_Li[ind_det2], logN_Be[ind_det2], pch=1) 
+arrows(logN_Li[ind_left1], logN_Be[ind_left1], logN_Li[ind_left1]-0.2, 
+   logN_Be[ind_left1],length=0.1) # plot left arrows
+arrows(logN_Li[ind_left2], logN_Be[ind_left2], logN_Li[ind_left2]-0.2, 
+   logN_Be[ind_left2],length=0.1)
+points(logN_Li[ind_left1], logN_Be[ind_left1], pch=16)
+points(logN_Li[ind_left2], logN_Be[ind_left2], pch=1)
+arrows(logN_Li[ind_down1], logN_Be[ind_down1], logN_Li[ind_down1], 
+   logN_Be[ind_down1]-0.1, length=0.1)
+arrows(logN_Li[ind_down2], logN_Be[ind_down2], logN_Li[ind_down2], 
+   logN_Be[ind_down2]-0.1, length=0.1) 
+points(logN_Li[ind_down1], logN_Be[ind_down1], pch=16) 
+points(logN_Li[ind_down2], logN_Be[ind_down2], pch=1)
+
+arrows(logN_Li[ind_both1], logN_Be[ind_both1], 
+   logN_Li[ind_both1]-0.2, logN_Be[ind_both1], length=0.1) # plot double arrows
+arrows(logN_Li[ind_both1], logN_Be[ind_both1], logN_Li[ind_both1], 
+   logN_Be[ind_both1]-0.1,length=0.1)
+arrows(logN_Li[ind_both2], logN_Be[ind_both2], logN_Li[ind_both2]-0.2, 
+   logN_Be[ind_both2],length=0.1) 
+arrows(logN_Li[ind_both2], logN_Be[ind_both2], logN_Li[ind_both2], 
+   logN_Be[ind_both2]-0.1,length=0.1)
+points(logN_Li[ind_both1], logN_Be[ind_both1], pch=16) 
+points(logN_Li[ind_both2], logN_Be[ind_both2], pch=1)
+
+# Bivariate correlation and regression using Akritas-Thiel-Sen procedure
+
+logN_Li1 <- logN_Li[-c(1,23)] # remove two points with NaN entries
+Ind_Li1 <- Ind_Li[-c(1,23)] ;
+logN_Be1 <- logN_Be[-c(1,23)] 
+Ind_Be1 <- Ind_Be[-c(1,23)]
+Li_cen <- seq(FALSE, FALSE, length=66) # construct censoring indicator variables
+Li_cen[which(Ind_Be1==0)]  <- TRUE
+Be_cen=seq(FALSE, FALSE, length=66)
+Be_cen[which(Ind_Li1==0)] <- TRUE
+cenken_out <- cenken(logN_Be1, Be_cen, logN_Li1, Li_cen)
+abline(a=cenken_out$intercept, b=cenken_out$slope, lwd=2)
+
+# Construct a sample of bright nearby Hipparcos stars
+
+hip <- read.table('http://astrostatistics.psu.edu/MSMA/datasets/HIP1.tsv',
+   header=T, fill=T)
+attach(hip) ; dim(hip); summary(hip)
+
+# Plot luminosity distribution of stars and their truncation limits
+
+AbsMag <- Vmag + 5*log10(Plx/1000) + 5
+Lum <- 2.512^(4.84 - AbsMag)
+plot(density(log10(Lum)),ylim=c(0,1.7), main='', 
+   xlab='log L (solar, V band)', lwd=2, cex.lab=1.2)
+AbsMaglim <- 10.5 + 5*log10(Plx/1000) + 5
+Lumlim <- 2.512^(4.84 - AbsMaglim)
+lines(density(log10(Lumlim)), lty=2, lwd=2)
+text(0.7, 0.5, 'Hipparcos sample', pos=4, font=2)
+text(-0.5, 1.2, 'Truncation limits', pos=4, font=2)
+
+# Compute Lynden-Bell-Woodroofe estimator  with 90% confidence bands 
+
+install.packages('DTDA') ; library(DTDA)
+LBW.hip <- efron.petrosian(log10(Lum), log10(Lumlim), boot=T, B=100, alpha=0.1)
+summary(LBW.hip)
+plot(LBW.hip$time, LBW.hip$survival, pch=20, cex=0.6, main='', 
+   xlab='log L (solar, V band)', ylab='Density', cex.lab=1.2)
+upper <- LBW.hip$upper.Sob[-(1000:1013)] 
+lower <- LBW.hip$lower.Sob[-(1000:1013)]
+lines(LBW.hip$time,upper, lty=2) ; lines(LBW.hip$time, lower, lty=2)
+
+# Compare with observed Wielen 1983 local star LF 
+
+Wielen.MV <- seq(0, 12, 1)
+Wielen.LF <- c(35,126,209,380,676,955,1050,891,1120,1410,2140,2510,4470)
+points(log10(2.512^(4.84-Wielen.MV)), Wielen.LF/2500)
+
+# Compare with binned 1/V.max luminosity function (Schmidt 1968)
+
+Vol.max <- (4*pi/3)*(1000/Plx)^3
+bin.sum <- function(vol) sum(1/vol)
+Lum.bins <- cut(log10(Lum), breaks=seq(-2.5,3.0,0.5), ord=T)
+Schmidt.LF <- by(Lum, Lum.bins, bin.sum)
+lines(seq(-2.25, 2.75, 0.5), Schmidt.LF/4500, pch=3, lwd=2)
+
+
+******************************************************************
+******************************************************************
+
+Chapter 11. Time Series Analysis
+
+# Read in GX 5-1 data and create time series 
+
+GX.dat <- scan("http://astrostatistics.psu.edu/MSMA/datasets/GX.dat") 
+GX.time <- seq(from=0, to=512, length.out=65536)
+GX.ts <-  ts(GX.dat, GX.time) ; GX.ts.offset <- ts(GX.dat-30, GX.time)
+
+# Compare histogram of counts to normal distribution
+
+hist(GX.dat, breaks=100, xlim=c(40,100), ylim=c(0,3500), xlab='GX 5-1 counts',
+   font=2, font.lab=2, main='')
+curve(dnorm(x,mean=mean(GX.dat), sd=sqrt(mean(GX.dat)))*65536, lwd=3, add=T)
+sd(GX.dat) / sqrt(mean(GX.dat))  # result is 1.24
+
+# Examine raw and smoothed time series
+
+plot.ts(GX.ts[1:6000], ylab='GX 5-1 counts', xlab='Time (1/128 sec)', 
+   cex.lab=1.3, cex.axis=1.3)
+plot(GX.time,GX.dat, ylim=c(-10,115), xlab='Time (sec)', ylab="GX 5-1 counts",
+   cex.lab=1.3, cex.axis=1.3, type='n')
+lines(ksmooth(GX.time, GX.dat+30, 'normal', bandwidth=7), lwd=2) 
+text(450, 110, 'Normal kernel')
+lines(filter(GX.ts, sides=2, rep(1,7)/7), lwd=2) 
+text(450, 85, 'Moving average')
+lines(kernapply(GX.ts.offset, kernel('modified.daniell', 7)), lwd=2) 
+text(450, 50, 'Modified daniell')
+lines(supsmu(GX.time, GX.dat-60), lwd=2) 
+text(400, 20, "Friedman's supersmoother")
+lines(lowess(GX.time, GX.dat-80, 0.05), lwd=2) 
+text(450, 0, "Local regression") 
+
+# Raw periodogram
+
+f <- 0:32768/65536 
+I <- (4/65536) * abs(fft(GX.ts) / sqrt(65536))^2
+plot(f[2:60000], I[2:60000], type="l", ylab="Power", xlab="Frequency")
+
+Pergram <- spec.pgram(GX.ts,log='no',main='')
+summary(Pergram)
+Pergram$spec[500] # value of 500th point
+2*Pergram$spec[500] / qchisq(c(0.025,0.975),2)
+
+# Raw and smoothed periodogram
+
+par(mfrow=c(3,1))
+spec.pgram(GX.ts, log='no', main='', sub='')
+spec.pgram(GX.ts, spans=50, log='no', main='', sub='') 
+spec.pgram(GX.ts, spans=500, log='no', main='', sub='') 
+
+# Autocorrelation functions of the GX 5-1 time series
+
+par(mfrow=c(1,2)) 
+acf(GX.ts, 40, main='', ci.col='black', ylim=c(-0.05,0.3), lwd=2) 
+pacf(GX.ts, 40, main='', ci.col='black', ylim=c(-0.05,0.3), lwd=2)
+
+# Autoregressive modeling 
+
+ARmod <- ar(GX.ts, method='ols') 
+ARmod$order # model selection based on AIC 
+ARmod$ar # best-fit parameter values 
+ARmod$asy.se.coef$ar # parameter standard errors 
+plot(0:29, log10(ARmod$aic[1:30]), xlab='AR model parameters', 
+    ylab='log(AIC)', pch=20)
+arrows(27, 0.4, 27, 0.0, length=0.1)
+
+# Spectrum of AR model
+
+ARspec <- spec.ar(GX.ts, plot=F)
+GXspec <- spec.pgram(GX.ts, span=101, main='', sub='', lwd=2)
+lines(ARspec$freq, ARspec$spec, col='red', lwd=4)
+legend(0.23, 550, c('Periodogram, Daniell smooth', 'AR(27) model'), 
+   lty=c(1,1), lwd=c(2,4), col=c('black','red'))
+
+# Spectral estimates of the long-range memory parameter d
+
+install.packages('fracdiff') ; library(fracdiff)
+d.FARIMA <- fracdiff(GX.ts, nar=27, nma=1, ar=ARmod$ar) ; d.FARIMA$d
+d.GPH <- fdGPH(GX.ts) 
+d.Reisen <- fdSperio(GX.ts) 
+
+# Time domain estimates of the long-range memory parameter H=d+1/2
+
+install.packages('fractal') ; library(fractal) 
+d.DFA <- DFA(GX.ts) ;  d.DFA 
+plot(d.DFA) 
+d.ACVF <- hurstACVF(GX.ts) ; d.ACVF  
+d.block <- hurstBlock(GX.ts)  ; d.block
+
+# Discrete wavelet transform
+
+install.packages('waveslim') ; library(waveslim) 
+GX.wav <-  dwt(GX.ts,n.levels=10) 
+par(mfrow=c(3,1))
+plot.ts(up.sample(GX.wav[[4]],2^4),type='h',axes=F,ylab='') ; abline(h=0)
+plot.ts(up.sample(GX.wav[[7]],2^7),type='h',axes=F,ylab='',lwd=2) ; abline(h=0)
+plot.ts(up.sample(GX.wav[[10]],2^{10}),type='h',axes=F,ylab='',lwd=2) ; abline(h=0)
+par(mfrow=c(1,1))
+
+
+******************************************************************
+******************************************************************
+
+Chapter 12. Spatial Point Processes
+
+# Construct three galaxy redshift datasets, plot using spatstat
+
+shap <- read.table('http://astrostatistics.psu.edu/MSMA/datasets/Shapley_galaxy.dat', 
+   header=T, fill=T)
+attach(shap) ; dim(shap) ; summary(shap)  
+shap.hi <- shap[(R.A. < 205) & (R.A. > 200) & (Dec. > -34) & (Dec. < -29) ,]
+shap.lo <- shap[(R.A. < 214) & (R.A. > 209) & (Dec. > -34) & (Dec. < -27) ,]
+shap.clus <- shap[(R.A. <204.5) & (R.A. > 200.4) & (Dec. > -32.5) & (Dec. < -31.0) 
+   & (Vel > 11000) & (Vel < 18000),]
+
+# Plot in 3-dimensions using rgl, plot and scatterplot3d 
+
+install.packages('rgl') ; library(rgl)
+rgl.open()
+rgl.points(scale(shap[,1]), scale(shap[,2]), scale(shap[,4]))
+rgl.bbox()
+rgl.snapshot('Shapley.png')
+rgl.close()
+
+plot(shap.lo[,1], shap.lo[,2], cex=(scale(shap.lo[,4])+1.5)/2, 
+   xlab='Right Ascension (degrees)', ylab='Declination (degrees)')
+
+install.packages('scatterplot3d') ; library(scatterplot3d)
+scatterplot3d(shap.hi[,c(1,2,4)], pch=20, cex.symbols=0.7, type='p', angl=40, 
+   zlim=c(0,50000))
+
+# Preparation of nearest neighbor lists for spdep analysis
+
+install.packages('spdep') ; library(spdep)
+shap.lo.mat <- as.matrix(shap.lo[,1:2])
+nn.shap.lo <- knearneigh(shap.lo.mat, k=1) ; str(nn.shap.lo)
+nb.shap.lo <- knn2nb(nn.shap.lo) ; plot.nb(nb.shap.lo, shap.lo[,1:2])
+nb.wt.shap.lo <- nb2listw(nb.shap.lo,style='B') ; summary(nb.wt.shap.lo)
+
+# Application of Moran's I and Geary's C statistics
+
+moran(shap.lo.mat[,1], nb.wt.shap.lo, n=length(nb.shap.lo), 
+   S0=Szero(nb.wt.shap.lo))
+moran.test(shap.lo.mat[,1], nb.wt.shap.lo)
+moran.mc(shap.lo.mat[,1], nb.wt.shap.lo, nsim=10000)
+geary(shap.lo.mat[,1], nb.wt.shap.lo, n=length(nb.shap.lo), 
+   n1=length(nb.shap.lo)-1, S0=Szero(nb.wt.shap.lo))
+geary.test(shap.lo.mat[,1], nb.wt.shap.lo)
+
+# Variogram analysis: gstat
+
+install.packages('gstat') ; library(gstat)
+shap.variog <- variogram(Vel~1, locations=~R.A.+Dec., data=shap)
+variog.mod1 <- vgm(7e+07, "Gau", 3.0,2e+07)
+variog.fit <- fit.variogram(shap.variog,variog.mod1) ; variog.fit
+plot(shap.variog,model <- variog.fit, col='black', pch=20, 
+   xlab='Distance (degree)', ylab="Semivariance (km/s*km/s)", lwd=2)
+
+# Variogram analysis: geoR
+
+install.packages('geoR') ; library(geoR)
+shap1 <- shap[-c(which(duplicated(shap[,1:2]))),]
+shap.geo <- as.geodata(shap1,coords.col=1:2, data.col=4)
+points.geodata(shap.geo,cex.min=0.2, cex.max=1.0, pt.div='quart', col='gray')
+plot.geodata(shap.geo, breaks=30)
+
+shap.vario <- variog(shap.geo, uvec=seq(0, 10, by=0.5)) 
+plot(shap.vario,lwd=2, cex.lab=1.3, cex.axis=1.3, lty=1)
+shap.GRF1 <- likfit(shap.geo, ini.cov.pars=c(4e7,0.2))
+summary.likGRF(shap.GRF1)
+lines.variomodel(shap.GRF1, lwd=2, lty=2) 
+
+# Preparation for spatstat analysis
+
+install.packages('spatstat') ; library(spatstat)
+shap.lo.win <- owin(range(shap.lo[,1]), range(shap.lo[,2]))
+centroid.owin(shap.lo.win) ; area.owin(shap.lo.win)
+shap.lo.ppp <- as.ppp(shap.lo[,c(1,2,4)], shap.lo.win) # planar point pattern
+summary(shap.lo.ppp)
+plot(density(shap.lo.ppp,0.3), col=topo.colors(20), main='', xlab='R.A.', 
+   ylab='Dec.')
+plot(shap.lo.ppp, lwd=2, add=T)
+
+# K function for the Shapley low density region
+
+shap.lo.K <- Kest(shap.lo.ppp, correction='isotropic')
+shap.lo.K.bias <- Kest(shap.lo.ppp, correction='none')
+plot.fv(shap.lo.K, lwd=2, col='black',  main='', xlab='r (degrees)', legend=F)
+plot.fv(shap.lo.K.bias, add=T, lty=3, lwd=2, col='black', legend=F)
+
+# Draw envelope of 100 simulations of CSR process
+
+shap.lo.K.env <- envelope(shap.lo.ppp, fun=Kest, nsim=100, global=T)
+xx <- c(0, shap.lo.K.env$r, rev(shap.lo.K.env$r), 0)
+yy <- c(c(0, shap.lo.K.env$lo), rev(c(0,shap.lo.K.env$hi)))
+polygon(xx, yy, col='gray')
+plot.fv(shap.lo.K, lwd=2, col='black', main='', add=T, legend=F)
+plot.fv(shap.lo.K.bias, add=T, lty=3, lwd=2, col='black', legend=F)
+
+# Similar plot for the L* function
+
+shap.lo.L <- Lest(shap.lo.ppp, correction='isotropic')
+shap.lo.L.bias <- Lest(shap.lo.ppp, correction='none')
+plot(shap.lo.L$r, (shap.lo.L$iso - shap.lo.L$r), lwd=2, col='black',
+   main='',xlab='r (degrees)', ylab='L*(r)', ty='l', ylim=c(-0.2,0.2))
+lines(shap.lo.L$r, (shap.lo.L$theo - shap.lo.L$r), lwd=2, lty=2)
+lines(shap.lo.L$r, (shap.lo.L.bias$un - shap.lo.L$r), lwd=2, lty=3)
+
+# Baddeley J function for the Shapley low density region
+
+plot(Jest(shap.lo.ppp), lwd=2, col='black', cex.lab=1.3, cex.axis=1.3, main='',
+   xlab='r (degrees)', legend=F)
+
+# Two-point correlation function
+
+shap.lo.pcf <- pcf(shap.lo.ppp)
+plot(shap.lo.pcf, xlim=c(0.0,0.2))
+plot(log10(shap.lo.pcf$r[2:512]), log10(shap.lo.pcf$trans[2:512]), type='l', 
+   lwd=2, xlab='log r (degrees)', ylab='log pair correlation fn')
+lines(c(-1,0), c(0.78+0.48,0.48), lwd=2, lty=2)
+lines(c(-2,0), c(0,0), lwd=2, lty=3)
+
+# Compute Dirichlet (Voronoi) tessellation 
+
+shap.lo.dir <- dirichlet(shap.lo.ppp)
+summary(shap.lo.dir) ; plot(shap.lo.dir, main='') 
+shap.lo.tile <- tiles(shap.lo.dir) ; str(shap.lo.tile)
+shap.lo.area <- list(lapply(shap.lo.tile, area.owin)) ; str(shap.lo.area)
+
+# Select small area tiles as clusters
+
+hist(as.numeric(shap.lo.area[[1]]), breaks=30)
+shap.lo.clus <- cut(as.numeric(shap.lo.area[[1]]), breaks=c(0,0.06,1))
+plot(shap.lo.dir, main='') 
+points(shap.lo.ppp, pch=20, cex=0.5)
+points(shap.lo.ppp[shap.lo.clus=='(0,0.06]'], pch=1,lwd=2)
+
+# IDW spatial interpolation using the gstat package
+
+xrange <- c(193,216) ; yrange <- c(-38,-26.5)
+shap.grid <- expand.grid(x=seq(from=xrange[1], to=xrange[2], by=0.05),
+y <- seq(from=yrange[1], to=yrange[2], by=0.05))
+names(shap.grid) <- c("R.A.","Dec.")
+gridded(shap.grid) <- ~R.A.+Dec.
+plot(shap.grid) ; points(shap[,1:2], pch=20)
+
+shap.idw <- idw(shap[,4]~1, locations=~R.A.+Dec., shap[,1:2], shap.grid, 
+   idp=1.5)
+sp.theme(regions = list(col = topo.colors(100)), set=T)
+spplot(shap.idw)
+
+# Ordinary kriging using the geoR package
+
+shap.vario <- variog(shap.geo, uvec=seq(0, 10, by=0.2)) 
+plot(shap.vario, lwd=2, lty=1)
+shap.variofit <- variofit(shap.vario, cov.model='gaussian')
+lines(shap.variofit, lty=2)
+
+shap.grid <- pred_grid(c(193,217), c(-38,-29), by=0.3)
+KC <- krige.control(obj.model=shap.variofit)
+shap.okrig <- krige.conv(shap.geo,loc=shap.grid, krig=KC)
+
+image(shap.okrig, xlim=c(195,203), ylim=c(-38,-27))
+points(shap.geo, cex.min=0.3, cex.max=1.5, add=T)
+image(shap.okrig, loc=shap.grid, val=sqrt(shap.okrig$krige.var), 
+   xlim=c(195,203), ylim=c(-38,-27), zlim=c(3800,5000))
+points(shap.geo,cex.min=0.3, cex.max=1.5, add=T)
+
+# Preparation of circular datasets from Hipparcos proper motion catalog
+
+hip <- read.table("http://astrostatistics.psu.edu/MSMA/datasets/HIP.dat",
+   header=T, fill=T)
+dim(hip) ;  summary(hip)
+hist(hip[,8], breaks=50) 
+hip1<- hip[hip[,8]<5,] ; hip2 = na.omit(hip1) ; hip3 = hip2 
+hip3[,6] <- hip2[,6] - median(hip2[,6]) 
+hip3[,7] <- hip2[,7] - median(hip2[,7])
+attach(hip3) ; dim(hip3) 
+nstar <- length(hip3[,6])
+
+const=360. / (2*pi) 
+theta <- numeric(length=nstar)
+for (i in 1:nstar) {
+	if(pmRA[i]>=0 & pmDE[i]>=0) theta[i] = atan(pmRA[i] / pmDE[i]) * const
+	if(pmDE[i]<0) theta[i] = 180. + atan(pmRA[i] / pmDE[i]) * const
+	if(pmRA[i]<0 & pmDE[i]>=0)   theta[i] = 360. + atan(pmRA[i] / pmDE[i]) * const
+	}
+hist(theta, breaks=20, lwd=2,xlab='Position angle theta (degrees)', main='')
+ 
+# Proper motion and circular plots
+
+install.packages('CircStats') ; library(CircStats)
+circ.summary(theta)
+circ.plot(theta, cex=0.3, pch=20, stack=T, bins=50, shrink=2)
+theta=theta / const
+plot(pmRA, pmDE, pch=20, cex=0.6, xlab='Proper motion R.A. (mas/yr)',
+   ylab='Proper motion Dec. (mas/yr)',main='')
+abline(0, 0, lty=2, lwd=2) ; abline(0, 100000, lty=2, lwd=2)
+est.kappa(theta, bias=T)
+
+# Basic statistics, tests for uniformity, and von Mises tests
+
+install.packages('circular') ; library(circular)
+circ.summary(theta) 
+sqrt(circ.disp(theta)[4])
+
+kuiper(theta) ; r.test(theta); rao.spacing(theta)
+watson(theta) ; watson(theta,dist='vm')
+
+vm.ml(theta,bias=T) 
+vm_boot <- vm.bootstrap.ci(theta,bias=T)
+vm_boot$mu.ci ; vm_boot$kappa.ci
+
+
+******************************************************************
+******************************************************************
+
+Appendix B. Getting Started with R
+
+# I. Query the session environment and make a vector of three numbers
+
+getwd() 
+setwd('/Users/myself/newdir')
+sessionInfo() ;  citation()
+a.test <- c(33, 44, 55)
+ls()  ;  class(a.test) ;  str(a.test)
+a.test ;  write(file='output', a.test)
+
+# II. Create a 500x2 bivariate dataset where the X values are evenly 
+# distributed between 0 and 5 and the Y values have a nonlinear 
+# dependence on X with heteroscedastic Gaussian scatter
+
+help(seq) ; help(sample)  ; help(rnorm)  
+set.seed(1)
+x <- sample(seq(0.01, 3, length.out=500))
+y <- 0.5*x + 0.3^(x^2) + rnorm(500, mean=0, sd=(0.05*(1+x^2)))
+
+# III. Examine, summarize and boxplot univariate distributions
+summary(x) ; summary(y)
+str(summary(x))
+write.table(rbind(summary(x),summary(y)),file='summary.txt')
+
+help(par) ; help(boxplot)
+par(mfrow=c(1,2))  # set up two-panel figure
+boxplot(x,  notch=T, main='Boxplot for X')
+boxplot(y,  notch=T, pch=20, cex=0.5, main='Boxplot for Y')
+par(mfrow=c(1,1))
+dev.copy2eps(file='box.eps')
+
+plot(ecdf(x),pch=20,cex=0.3,main='',ylab='EDF',xlab='')
+plot(ecdf(y),pch=20,cex=0.3,add=T)
+text(2.0,0.5,"X") ; text(1.4,0.8,"Y")
+dev.copy2eps(file='edf.eps')
+
+# IV. Put X and Y into a data frame
+
+help(cbind) ; help(as.data.frame) ; help(names)
+xy <- cbind(x, y)  ;  str(xy)
+xy <- as.data.frame(xy)
+names(xy) <- c('Xvar', 'Yvar')  ; str(xy)
+attach(xy)  ;  ls()
+
+# V. Bivariate plots and correlation tests
+
+help(plot)
+par(mfrow=c(2,2))
+plot(xy, pch=20, cex=0.5)
+plot(log10(xy), pch=20, cex=0.5, xlab='log(Xvar)', ylab='log(Yvar)')
+
+length(x[x>2.5])
+cor.test(x[x>2.5],y[x>2.5], method='pearson')
+cor.test(x[x>2.5],y[x>2.5], method='kendall')
+
+# VI. Kernel density estimator with spline fit
+
+smoothScatter(log10(xy), lwd=4, pch=20, cex=0.2, 
+    colramp = colorRampPalette(c("white",gray(20:5/20))))
+lines(smooth.spline(log10(xy)), lwd=3)
+
+# VII. Least-squares polynomial regression 
+logx <- log10(x) ; logx2 <- (log10(x))^2 ; logx3 <- (log10(x))^3 
+logx4 <- (log10(x))^4 ; logx5 <- (log10(x))^5
+yfit <- lm(log10(y) ~ logx + logx2 + logx3 + logx4 + logx5)
+str(yfit)
+plot(log10(x), log10(y), pch=20, col=grey(0.5),cex=0.3)
+lines(sort(log10(x)), yfit$fit[order(log10(x))], lwd=3)
+dev.copy2eps(file="smooth.eps")
+
+
+******************************************************************
+******************************************************************
+
+Appendix C. Astronomical Datasets
+
+# SDSS point sources test dataset, N=17,000 (mag<21, point sources, hi-qual)
+
+SDSS <- read.csv('http://astrostatistics.psu.edu/MSMA/datasets/SDSS_test.csv', h=T)
+dim(SDSS) ; summary(SDSS)
+SDSS_test <- data.frame(cbind((SDSS[,1]-SDSS[,2]), (SDSS[,2]-SDSS[,3]), 
+	(SDSS[,3]-SDSS[,4]), (SDSS[,4]-SDSS[,5])))
+names(SDSS_test) <- c('u_g', 'g_r', 'r_i', 'i_z')
+str(SDSS_test) 
+
+par(mfrow=c(1,3))
+plot(SDSS_test[,1], SDSS_test[,2], xlim=c(-0.7,3), ylim=c(-0.7,1.8),pch=20, 
+	cex=0.6, cex.lab=1.5, cex.axis=1.5, main='', xlab='u-g (mag)', ylab='g-r (mag)') 
+plot(SDSS_test[,2], SDSS_test[,3], xlim=c(-0.7,1.8), ylim=c(-0.7,1.8), pch=20, 
+	cex=0.6, cex.lab=1.5, cex.axis=1.5, main='', xlab='g-r (mag)', ylab='r-i (mag)') 
+plot(SDSS_test[,3], SDSS_test[,4], xlim=c(-0.7,1.8), ylim=c(-1.1,1.3), pch=20, 
+	cex=0.6, cex.lab=1.5, cex.axis=1.5, main='', xlab='r-i (mag)', ylab='i-z (mag)') 
+par(mfrow=c(1,1))
+
+# Quasar training set, N=2000 (Class 1)
+ 
+qso1 <- read.table('http://astrostatistics.psu.edu/MSMA/datasets/SDSS_QSO.dat', h=T)  
+dim(qso1) ; summary(qso1)
+bad_phot_qso <- which(qso1[,c(3,5,7,9,11)] > 21.0 | qso1[,3]==0)
+qso2 <- qso1[1:2000,-bad_phot_qso,]
+qso3 <- cbind((qso2[,3]-qso2[,5]), (qso2[,5]-qso2[,7]), (qso2[,7]-qso2[,9]), (qso2[,9]-qso2[,11]))
+qso_train <- data.frame(cbind(qso3, rep(1, length(qso3[,1]))))
+names(qso_train) <- c('u_g', 'g_r', 'r_i', 'i_z', 'Class')
+dim(qso_train) ; summary(qso_train) 
+
+# Star training set, N=5000 (Class 2)
+
+temp2 <- read.csv('http://astrostatistics.psu.edu/MSMA/datasets/SDSS_stars.csv', h=T)
+dim(temp2) ; summary(temp2) 
+star <- cbind((temp2[,1]-temp2[,2]), (temp2[,2]-temp2[,3]), (temp2[,3]-temp2[,4]), 
+	(temp2[,4]-temp2[,5]))
+star_train <- data.frame(cbind(star, rep(2, length(star[,1]))))
+names(star_train) <- c('u_g','g_r','r_i','i_z','Class')
+dim(star_train) ; summary(star_train) 
+
+# White dwarf training set, N=2000 (Class 3)
+
+temp3 <- read.csv('http://astrostatistics.psu.edu/MSMA/datasets/SDSS_wd.csv', h=T)
+dim(temp3) ; summary(temp3)
+temp3 <- na.omit(temp3)
+wd <- cbind((temp3[1:2000,2]-temp3[1:2000,3]), (temp3[1:2000,3]-temp3[1:2000,4]),
+	(temp3[1:2000,4]-temp3[1:2000,5]), (temp3[1:2000,5]-temp3[1:2000,6]))
+wd_train <- data.frame(cbind(wd, rep(3, length(wd[,1]))))
+names(wd_train) <- c('u_g', 'g_r', 'r_i', 'i_z', 'Class')
+dim(wd_train) ; summary(wd_train) 
+
+# Combine and plot the training set (9000 objects)
+
+SDSS_train <- data.frame(rbind(qso_train, star_train, wd_train))
+names(SDSS_train) <- c('u_g', 'g_r', 'r_i', 'i_z', 'Class')
+str(SDSS_train)
+
+par(mfrow=c(1,3))
+plot(SDSS_train[,1], SDSS_train[,2], xlim=c(-0.7,3), ylim=c(-0.7,1.8), pch=20, 
+   	col=SDSS_train[,5], cex=0.6, cex.lab=1.6, cex.axis=1.6, main='', xlab='u-g (mag)',
+   	ylab='g-r (mag)')
+legend(-0.5, 1.7, c('QSO','MS + RG','WD'), pch=20, col=c('black','red','green'), 
+	cex=1.6)
+plot(SDSS_train[,2], SDSS_train[,3], xlim=c(-0.7,1.8), ylim=c(-0.7,1.8), pch=20, 
+	col=SDSS_train[,5], cex=0.6, cex.lab=1.6, cex.axis=1.6, main='', xlab='g-r (mag)',
+	ylab='r-i (mag)') 
+plot(SDSS_train[,3], SDSS_train[,4], xlim=c(-0.7,1.8), ylim=c(-1.1,1.3), pch=20, 
+	col=SDSS_train[,5], cex=0.6, cex.lab=1.6, cex.axis=1.6, main='', xlab='r-i (mag)',
+	ylab='i-z (mag)') 
+par(mfrow=c(1,1))
+
+</pre>
+</body>
+</html>
